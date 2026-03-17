@@ -1,7 +1,7 @@
 import torch
 import importlib
 from typing import TYPE_CHECKING
-from .platform import BasePlatform, CudaPlatform, CpuPlatform, NPUPlatform  # noqa: F401
+from .platform import BasePlatform, CudaPlatform, CpuPlatform, NPUPlatform, XPUPlatform  # noqa: F401
 
 
 def resolve_obj_by_qualname(qualname: str) -> BasePlatform:
@@ -16,6 +16,8 @@ def resolve_obj_by_qualname(qualname: str) -> BasePlatform:
 def resolve_current_platform_cls_qualname() -> str:
     if torch.cuda.is_available():
         return "cache_dit.platforms.platform.CudaPlatform"
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        return "cache_dit.platforms.platform.XPUPlatform"
     try:
         import torch_npu  # type: ignore  # noqa
 
@@ -54,4 +56,4 @@ def __setattr__(name: str, value):
         raise AttributeError(f"No attribute named '{name}' exists in {__name__}.")
 
 
-__all__ = ["BasePlatform", "current_platform"]
+__all__ = ["BasePlatform", "current_platform", "XPUPlatform"]

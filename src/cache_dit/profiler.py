@@ -31,9 +31,10 @@ class ProfilerContext:
         with_stack: bool = True,
         record_shapes: bool = True,
     ):
-        assert (
-            current_platform.is_accelerator_available() and current_platform.device_type == "cuda"
-        ), "Torch ProfilerContext currently only supports CUDA devices."
+        assert current_platform.is_accelerator_available() and current_platform.device_type in (
+            "cuda",
+            "xpu",
+        ), "Torch ProfilerContext currently only supports CUDA and XPU devices."
         self.enabled = enabled
         self.activities = activities or ["CPU", "GPU"]
         self.output_dir = Path(output_dir or PROFILER_DIR).expanduser()
@@ -49,9 +50,10 @@ class ProfilerContext:
         if not self.enabled:
             return self
 
-        assert (
-            current_platform.is_accelerator_available() and current_platform.device_type == "cuda"
-        ), "Torch ProfilerContext currently only supports CUDA devices."
+        assert current_platform.is_accelerator_available() and current_platform.device_type in (
+            "cuda",
+            "xpu",
+        ), "Torch ProfilerContext currently only supports CUDA and XPU devices."
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -59,6 +61,9 @@ class ProfilerContext:
             "CPU": ProfilerActivity.CPU,
             "GPU": ProfilerActivity.CUDA,
         }
+        # XPU devices use ProfilerActivity.XPU when available
+        if current_platform.device_type == "xpu" and hasattr(ProfilerActivity, "XPU"):
+            activity_map["GPU"] = ProfilerActivity.XPU
         torch_activities = [activity_map[a] for a in self.activities if a in activity_map]
 
         rank = 0
@@ -73,7 +78,7 @@ class ProfilerContext:
         filename = "-".join(filename_parts) + ".trace.json.gz"
         self.trace_path = self.output_dir / filename
 
-        if "MEM" in self.activities and torch.cuda.is_available():
+        if "MEM" in self.activities and current_platform.is_accelerator_available() and current_platform.device_type == "cuda":
             torch.cuda.memory._record_memory_history(max_entries=100000)
             logger.info("Started CUDA memory profiling")
 
@@ -97,8 +102,8 @@ class ProfilerContext:
             return
 
         if self.profiler is not None:
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
+            if current_platform.is_accelerator_available():
+                current_platform.synchronize()
 
             self.profiler.stop()
 
@@ -107,7 +112,7 @@ class ProfilerContext:
 
             logger.info(f"Profiling completed. Trace saved to: {self.trace_path}")
 
-        if "MEM" in self.activities and torch.cuda.is_available():
+        if "MEM" in self.activities and current_platform.is_accelerator_available() and current_platform.device_type == "cuda":
             timestamp = int(time.time())
             rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
             memory_snapshot_path = (
