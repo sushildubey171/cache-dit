@@ -1,6 +1,6 @@
 # Intel XPU Support
 
-🔥We are excited to announce that Cache-DiT now provides **native** support for **Intel XPU** (Intel Arc GPUs, Intel Data Center GPU Flex Series, and Intel Data Center GPU Max Series). Theoretically, **nearly all** models supported by Cache-DiT can run on Intel XPU with most of Cache-DiT's optimization technologies, including:
+🔥We are excited to announce that Cache-DiT now provides **native** support for **Intel XPU** (Intel GPU BMG). Theoretically, **nearly all** models supported by Cache-DiT can run on Intel XPU with most of Cache-DiT's optimization technologies, including:
 
 - **Hybrid Cache Acceleration** ([**DBCache**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#dbcache-dual-block-cache), DBPrune, [**TaylorSeer**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#hybrid-taylorseer-calibrator), [**SCM**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#scm-steps-computation-masking) and more)
 - **Context Parallelism** (w/ Extended Diffusers' CP APIs, [**UAA**](https://cache-dit.readthedocs.io/en/latest/user_guide/CONTEXT_PARALLEL/#uaa-ulysses-anything-attention), Async Ulysses, ...)
@@ -14,9 +14,7 @@
 
 |Device|Hybrid Cache|Context Parallel|Tensor Parallel|Text Encoder Parallel|Auto Encoder(VAE) Parallel|
 |:---|:---:|:---:|:---:|:---:|:---:|
-|Intel Arc GPU|✅|✅|✅|✅|✅|
-|Intel Data Center GPU Flex|✅|✅|✅|✅|✅|
-|Intel Data Center GPU Max|✅|✅|✅|✅|✅|
+|Intel GPU BMG|✅|✅|✅|✅|✅|
 
 ## Attention backend
 
@@ -34,7 +32,7 @@ We recommend using the `native` (SDPA) backend as it is well-optimized for Intel
 |----------|------------------|-------|
 | Python   | >= 3.9           | Required |
 | PyTorch  | >= 2.3.0         | Built-in `torch.xpu` support |
-| Intel Extension for PyTorch (IPEX) | >= 2.3.0 | Required for best performance and distributed training (`ccl` backend) |
+| Intel Extension for PyTorch (IPEX) | >= 2.3.0 | Required for best performance and distributed training (`xccl` backend) |
 | Intel oneAPI Base Toolkit | >= 2024.1 | Required for oneAPI DPC++/C++ Compiler and oneMKL |
 
 ## Install Intel XPU Torch
@@ -48,7 +46,7 @@ pip3 install torch torchvision --index-url https://download.pytorch.org/whl/xpu
 
 ### Install Intel Extension for PyTorch (Recommended)
 
-For best performance and distributed training support (`ccl` backend), install Intel Extension for PyTorch:
+For best performance and distributed training support (`xccl` backend), install Intel Extension for PyTorch:
 
 ```bash
 pip3 install intel_extension_for_pytorch
@@ -62,7 +60,7 @@ pip3 install oneccl_bind_pt --index-url https://developer.intel.com/ipex-whl-sta
 import torch
 print(torch.xpu.is_available())       # Should print True
 print(torch.xpu.device_count())       # Number of XPU devices
-print(torch.xpu.get_device_name())    # Device name, e.g., "Intel(R) Arc(TM) A770 Graphics"
+print(torch.xpu.get_device_name())    # Device name
 ```
 
 ## Intel XPU Environment Variables
@@ -136,7 +134,6 @@ torchrun --nproc_per_node=4 -m cache_dit.generate qwen_image --parallel ulysses 
 
 ## Notes and Limitations
 
-- **Quantization**: TorchAO quantization (FP8, INT4) is currently supported on CUDA devices only. INT8 weight-only quantization may work on XPU depending on your TorchAO version.
+- **Quantization**: TorchAO quantization (FP8, INT4) is currently supported on CUDA devices only.
 - **Triton Kernels**: Some optimized Triton kernels are CUDA-specific and will fall back to native PyTorch implementations on XPU.
-- **Memory Profiling**: CUDA-specific memory snapshot APIs (`torch.cuda.memory._dump_snapshot`) are not available on XPU. The `ProfilerContext` will record CPU and XPU activities but skip CUDA memory snapshots.
 - **Device Capability**: Intel XPU does not use CUDA compute capability. Code paths that check `get_device_capability()` (e.g., Hopper-specific optimizations) are automatically skipped on XPU.

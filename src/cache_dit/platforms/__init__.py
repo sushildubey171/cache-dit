@@ -1,7 +1,7 @@
 import torch
 import importlib
 from typing import TYPE_CHECKING
-from .platform import BasePlatform, CudaPlatform, CpuPlatform, NPUPlatform, XPUPlatform  # noqa: F401
+from .platform import BasePlatform, CudaPlatform, CpuPlatform, NPUPlatform  # noqa: F401
 
 
 def resolve_obj_by_qualname(qualname: str) -> BasePlatform:
@@ -56,4 +56,4 @@ def __setattr__(name: str, value):
         raise AttributeError(f"No attribute named '{name}' exists in {__name__}.")
 
 
-__all__ = ["BasePlatform", "current_platform", "XPUPlatform"]
+__all__ = ["BasePlatform", "current_platform"]

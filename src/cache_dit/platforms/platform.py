@@ -218,8 +218,8 @@ class XPUPlatform(BasePlatform):
     device_type: str = "xpu"
     device_control_env_var: str = "ZE_AFFINITY_MASK"
     dispatch_key: str = "XPU"
-    dist_backend: str = "ccl"
-    full_dist_backend: str = "xpu:ccl"
+    dist_backend: str = "xccl"
+    full_dist_backend: str = "xpu:xccl"
 
     @staticmethod
     def empty_cache():
