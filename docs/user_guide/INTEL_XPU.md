@@ -1,6 +1,6 @@
 # Intel XPU Support
 
-🔥We are excited to announce that Cache-DiT now provides **native** support for **Intel XPU** (Intel GPU BMG). Theoretically, **nearly all** models supported by Cache-DiT can run on Intel XPU with most of Cache-DiT's optimization technologies, including:
+🔥We are excited to announce that Cache-DiT now provides **native** support for **Intel XPU**. Theoretically, **nearly all** models supported by Cache-DiT can run on Intel XPU with most of Cache-DiT's optimization technologies, including:
 
 - **Hybrid Cache Acceleration** ([**DBCache**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#dbcache-dual-block-cache), DBPrune, [**TaylorSeer**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#hybrid-taylorseer-calibrator), [**SCM**](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/#scm-steps-computation-masking) and more)
 - **Context Parallelism** (w/ Extended Diffusers' CP APIs, [**UAA**](https://cache-dit.readthedocs.io/en/latest/user_guide/CONTEXT_PARALLEL/#uaa-ulysses-anything-attention), Async Ulysses, ...)
@@ -14,7 +14,7 @@
 
 |Device|Hybrid Cache|Context Parallel|Tensor Parallel|Text Encoder Parallel|Auto Encoder(VAE) Parallel|
 |:---|:---:|:---:|:---:|:---:|:---:|
-|Intel GPU BMG|✅|✅|✅|✅|✅|
+|Intel XPU|✅|✅|✅|✅|✅|
 
 ## Attention backend
 
@@ -23,17 +23,18 @@ Cache-DiT supports multiple Attention backends for better performance. The suppo
 |backend|details|parallelism|attn_mask|
 |:---|:---|:---|:---|
 |native| Native SDPA Attention in PyTorch|✅|✅|
+|intel_xpu| Intel XPU Attention backend via Intel Extension for PyTorch|✅|✅|
 
-We recommend using the `native` (SDPA) backend as it is well-optimized for Intel XPU via Intel Extension for PyTorch.
+We recommend using the `intel_xpu` attention backend as it is well-optimized for Intel XPU via Intel Extension for PyTorch.
 
 ## Environment Requirements
 
 | Software | Supported version | Note |
 |----------|------------------|-------|
-| Python   | >= 3.9           | Required |
-| PyTorch  | >= 2.3.0         | Built-in `torch.xpu` support |
+| Python   | >= 3.10          | Required |
+| PyTorch  | >= 2.10.0        | Built-in `torch.xpu` support |
 | Intel Extension for PyTorch (IPEX) | >= 2.3.0 | Required for best performance and distributed training (`xccl` backend) |
-| Intel oneAPI Base Toolkit | >= 2024.1 | Required for oneAPI DPC++/C++ Compiler and oneMKL |
+| Intel oneAPI Base Toolkit | >= 2025.2 | Required for oneAPI DPC++/C++ Compiler and oneMKL |
 
 ## Install Intel XPU Torch
 
@@ -61,20 +62,6 @@ import torch
 print(torch.xpu.is_available())       # Should print True
 print(torch.xpu.device_count())       # Number of XPU devices
 print(torch.xpu.get_device_name())    # Device name
-```
-
-## Intel XPU Environment Variables
-
-```bash
-# Control visible Intel XPU devices via Level Zero affinity mask
-# e.g., expose only device 0 and device 1
-export ZE_AFFINITY_MASK=0,1
-
-# Alternatively, use ONEAPI_DEVICE_SELECTOR to filter by backend and device
-export ONEAPI_DEVICE_SELECTOR=level_zero:0
-
-# For distributed training with oneCCL
-export CCL_WORKER_COUNT=1
 ```
 
 ## Install Cache-DiT Library
