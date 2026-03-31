@@ -16,6 +16,8 @@ def resolve_obj_by_qualname(qualname: str) -> BasePlatform:
 def resolve_current_platform_cls_qualname() -> str:
     if torch.cuda.is_available():
         return "cache_dit.platforms.platform.CudaPlatform"
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        return "cache_dit.platforms.platform.XPUPlatform"
     try:
         import torch_npu  # type: ignore  # noqa
 

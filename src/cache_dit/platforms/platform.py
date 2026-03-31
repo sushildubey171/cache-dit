@@ -212,3 +212,66 @@ class NPUPlatform(BasePlatform):
     @staticmethod
     def set_device(device):
         return torch.npu.set_device(device)
+
+
+class XPUPlatform(BasePlatform):
+    device_type: str = "xpu"
+    device_control_env_var: str = "ZE_AFFINITY_MASK"
+    dispatch_key: str = "XPU"
+    dist_backend: str = "xccl"
+    full_dist_backend: str = "xpu:xccl"
+
+    @staticmethod
+    def empty_cache():
+        torch.xpu.empty_cache()
+
+    @staticmethod
+    def ipc_collect():
+        """
+        torch.xpu.ipc_collect() is not implemented.
+        """
+        pass
+
+    @staticmethod
+    def get_device_name():
+        return torch.xpu.get_device_name()
+
+    @staticmethod
+    def device_ctx(device):
+        return torch.xpu.device(device)
+
+    @staticmethod
+    def default_device():
+        return torch.device("xpu")
+
+    @staticmethod
+    def synchronize(device=None):
+        torch.xpu.synchronize(device)
+
+    @staticmethod
+    def device_count():
+        return torch.xpu.device_count()
+
+    @staticmethod
+    def is_accelerator_available():
+        return torch.xpu.is_available()
+
+    @staticmethod
+    def current_device():
+        return torch.xpu.current_device()
+
+    @staticmethod
+    def reset_peak_memory_stats(device=None):
+        return torch.xpu.reset_peak_memory_stats(device)
+
+    @staticmethod
+    def max_memory_allocated(device=None):
+        return torch.xpu.max_memory_allocated(device)
+
+    @staticmethod
+    def get_device_properties(device=None):
+        return torch.xpu.get_device_properties(device)
+
+    @staticmethod
+    def set_device(device):
+        return torch.xpu.set_device(device)
